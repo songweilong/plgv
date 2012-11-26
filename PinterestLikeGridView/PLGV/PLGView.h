@@ -23,6 +23,8 @@
 @property (nonatomic) NSInteger            frameWidth;               //瀑布流外框的宽度
 @property (nonatomic) NSInteger            frameHeight;              //瀑布流外框的高度
 @property (nonatomic) NSMutableSet        *cellsPool;                //Cells池, 存储重用的Cells
+@property (nonatomic) NSMutableSet        *visibleCellsPool;         //Cells池, 存储可见的Cells
+@property (nonatomic) NSMutableArray      *cellsToBeRemoved;         //Cells池, 存储要移除的Cells
 @property (nonatomic) NSInteger            currentOffsetY;           //当前scrollView的offsetY
 @property (nonatomic) BOOL                 isScrollingSlow;          //计算速度: 是否滚动很慢? 慢就要开始插入cell, 以便浏览
 @property (nonatomic) CGPoint              lastOffset;               //计算速度: 滚动中:上100ms的scrollView contentOffset

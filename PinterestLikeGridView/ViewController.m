@@ -19,8 +19,8 @@
     [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
     UIScrollView *PLGV = [[PLGView alloc] initWithConfig:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height)
-                                                 columns:3
-                                             columnSpace:0
+                                                 columns:5
+                                             columnSpace:10
                                                     data:nil];
     [self.view addSubview:PLGV];
     NSLog(@"w%f, h%f", self.view.frame.size.width, self.view.frame.size.height);

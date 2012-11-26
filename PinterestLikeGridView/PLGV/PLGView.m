@@ -11,7 +11,7 @@
 #define THRESHOLD_SPEED    1.0f   //THRESHOLD_SPEED是一个速度阀值, 如果scrollView滚动的速度低于它
                                   //则认为是慢速滚动, 人眼可以识别滚动的内容,我们就要向瀑布流中画入cells
                                   //这个值没有特定参考, 是实测出的一个较为合理的数据, 可以自行测试修改
-#define PRELOAD_HEIGHT     (self.frame.size.height)  //瀑布流高度的三分之一作为预读数据的高度
+#define PRELOAD_HEIGHT     (self.frame.size.height/3)  //瀑布流高度的三分之一作为预读数据的高度
 
 @implementation PLGView
 
@@ -53,7 +53,8 @@
          }
          */
         self.columnY = [NSMutableDictionary dictionaryWithCapacity:self.columns];
-        self.cellsPool = [NSMutableSet setWithCapacity:self.columns];
+        self.cellsPool = [NSMutableSet set];
+        self.visibleCellsPool = [NSMutableSet set];
         //初始化columnX 初始化columnY 初始化Cells池
         [self initProperties];
         self.frameWidth = frame.size.width;
@@ -179,7 +180,7 @@
     if (self.workingInProgress) {
         return;
     }
-    
+    self.cellsToBeRemoved = [@[] mutableCopy];
     if ([@"up" isEqualToString:direction]) {
         NSInteger bottomLowestHeight = [self getTheLowestHeightForAddingCell];
         //render cell
@@ -188,13 +189,18 @@
                 [self renderCells:direction data:self.data[self.subscriptOfData + 1]];
             }
         }
-        for(UIView *cell in [self subviews])
+        NSEnumerator *enumerator = [self.visibleCellsPool objectEnumerator];
+        UIView *cell;
+        while (cell = [enumerator nextObject])
         {
             //recycle cell
             if (cell.frame.origin.y + cell.frame.size.height < self.currentOffsetY) {
-                [self recycleCells:direction cell:cell];
+                [self.cellsToBeRemoved addObject:cell];
             }
         }
+        [self.cellsToBeRemoved enumerateObjectsUsingBlock:^(UIView *cell, NSUInteger idx, BOOL *stop) {
+            [self recycleCells:direction cell:cell];
+        }];
     }
     
     if([@"down" isEqualToString:direction]) {
@@ -205,13 +211,18 @@
                 [self renderCells:direction data:self.data[self.superscriptOfData - 1]];
             }
         }
-        for(UIView *cell in [self subviews])
+        NSEnumerator *enumerator = [self.visibleCellsPool objectEnumerator];
+        UIView *cell;
+        while (cell = [enumerator nextObject])
         {
             //recycle cell
             if (cell.frame.origin.y > self.currentOffsetY + self.frameHeight) {
-                [self recycleCells:direction cell:cell];
+                [self.cellsToBeRemoved addObject:cell];
             }
         }
+        [self.cellsToBeRemoved enumerateObjectsUsingBlock:^(UIView *cell, NSUInteger idx, BOOL *stop) {
+            [self recycleCells:direction cell:cell];
+        }];
     }
     
 }
@@ -221,9 +232,9 @@
 {
     //return;
     NSInteger columnNumber = [self getColumnNumberByX:cell.frame.origin.x];
-    
     [self.cellsPool addObject:cell];
     [cell removeFromSuperview];
+    [self.visibleCellsPool removeObject:cell];
     NSLog(@"[<==销毁了一个Cell]");
     
     if([@"up" isEqualToString:direction]) {
@@ -260,15 +271,21 @@
     NSInteger columnNumber = [self getColumnNumberByX:origin.x];
     
     UIView *cell = [self.cellsPool anyObject];
+    UIImageView *imageView;
     if ([@"up" isEqualToString:direction]) {
         [cell setFrame:CGRectMake(origin.x, origin.y, self.columnWidth, [data[@"h"] floatValue])];
-        UIImageView *imageView = (UIImageView *)[cell viewWithTag:10];
+        imageView = (UIImageView *)[cell viewWithTag:10];
+        cell.backgroundColor = [UIColor redColor];
         if (self.isScrollingSlow) {
             NSLog(@"插入图片%@", data[@"img"]);
+            NSLog(@"columnWidth: %d", self.columnWidth);
+            NSLog(@"data-h: %@", data[@"h"]);
             imageView.frame = CGRectMake(0, 0, self.columnWidth, [data[@"h"] floatValue]);
             imageView.image = [UIImage imageNamed:data[@"img"]];
+            imageView.contentMode = UIViewContentModeScaleAspectFit;
         }
         [self addSubview:cell];
+        [self.visibleCellsPool addObject:cell];
         NSLog(@"[==>下面增加了一个Cell]");
         //更新data指针
         self.subscriptOfData++;
@@ -277,13 +294,14 @@
     }
     if ([@"down" isEqualToString:direction]) {
         [cell setFrame:CGRectMake(origin.x, (origin.y - self.columnSpace - [data[@"h"] intValue]), self.columnWidth, [data[@"h"] floatValue])];
-        UIImageView *imageView = (UIImageView *)[cell viewWithTag:10];
+        imageView = (UIImageView *)[cell viewWithTag:10];
         if (self.isScrollingSlow) {
             NSLog(@"插入图片%@", data[@"img"]);
             imageView.frame = CGRectMake(0, 0, self.columnWidth, [data[@"h"] floatValue]);
             imageView.image = [UIImage imageNamed:data[@"img"]];
         }
         [self addSubview:cell];
+        [self.visibleCellsPool addObject:cell];
         NSLog(@"[==>上面增加了一个Cell]");
         //更新data指针
         self.superscriptOfData--;
@@ -310,8 +328,12 @@
 //    }
     NSLog(@"||||||||");
     NSLog(@"=============================");
-    NSLog(@"= [%@, %@, %@]", self.columnY[@0][@"upAdd"], self.columnY[@1][@"upAdd"], self.columnY[@2][@"upAdd"]);
-    NSLog(@"= (%d)+%f", columnNumber+1, origin.y);
+    NSLog(@"= [%@, %@, %@, %@, %@]", self.columnY[@0][@"upAdd"], self.columnY[@1][@"upAdd"], self.columnY[@2][@"upAdd"], self.columnY[@3][@"upAdd"], self.columnY[@4][@"upAdd"]);
+//    NSLog(@"= [%f]", origin.x);
+//    NSLog(@"= (%d)+%f", columnNumber+1, origin.y);
+    NSLog(@"= cell: %@", NSStringFromCGRect(cell.frame));
+    NSLog(@"= cell: %@", [cell description]);
+    NSLog(@"= imageView: %@", NSStringFromCGRect(imageView.frame));
     NSLog(@"=============================");
 }
 
@@ -375,39 +397,70 @@
 -(NSArray *)getTestData
 {
     return @[
-    @{@"img": @"a1.jpeg", @"h": @500,  @"w": @192},
-    @{@"img": @"a1.jpeg", @"h": @500,  @"w": @192},
-    @{@"img": @"a1.jpeg", @"h": @500,  @"w": @192},
-    @{@"img": @"a1.jpeg", @"h": @500,  @"w": @192},
-    @{@"img": @"a1.jpeg", @"h": @500,  @"w": @192},
-    @{@"img": @"a1.jpeg", @"h": @500,  @"w": @192},
-    @{@"img": @"a1.jpeg", @"h": @500,  @"w": @192},
-    @{@"img": @"a1.jpeg", @"h": @500,  @"w": @192},
-    @{@"img": @"a1.jpeg", @"h": @500,  @"w": @192},
-    @{@"img": @"a1.jpeg", @"h": @500,  @"w": @192},
-    @{@"img": @"a1.jpeg", @"h": @500,  @"w": @192},
-    @{@"img": @"a1.jpeg", @"h": @500,  @"w": @192},
-    @{@"img": @"a1.jpeg", @"h": @500,  @"w": @192},
-    @{@"img": @"a1.jpeg", @"h": @500,  @"w": @192},
-    @{@"img": @"a1.jpeg", @"h": @500,  @"w": @192},
-    @{@"img": @"a1.jpeg", @"h": @500,  @"w": @192},
-    @{@"img": @"a1.jpeg", @"h": @500,  @"w": @192},
-    @{@"img": @"a1.jpeg", @"h": @500,  @"w": @192},
-    @{@"img": @"a1.jpeg", @"h": @500,  @"w": @192},
-    @{@"img": @"a1.jpeg", @"h": @500,  @"w": @192},
-    @{@"img": @"a1.jpeg", @"h": @500,  @"w": @192},
-    @{@"img": @"a1.jpeg", @"h": @500,  @"w": @192},
-    @{@"img": @"a1.jpeg", @"h": @500,  @"w": @192},
-    @{@"img": @"a1.jpeg", @"h": @500,  @"w": @192},
-    @{@"img": @"a1.jpeg", @"h": @500,  @"w": @192},
-    @{@"img": @"a1.jpeg", @"h": @500,  @"w": @192},
-    @{@"img": @"a1.jpeg", @"h": @500,  @"w": @192},
-    @{@"img": @"a1.jpeg", @"h": @500,  @"w": @192},
-    @{@"img": @"a1.jpeg", @"h": @500,  @"w": @192},
-    @{@"img": @"a1.jpeg", @"h": @500,  @"w": @192},
-    @{@"img": @"a1.jpeg", @"h": @500,  @"w": @192},
-    @{@"img": @"a1.jpeg", @"h": @500,  @"w": @192},
-    @{@"img": @"a1.jpeg", @"h": @500,  @"w": @192}];
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192},
+    @{@"img": @"a1.jpeg", @"h": @300,  @"w": @192}];
 
 //    @{@"img": @"a1.jpeg", @"h": @242,  @"w": @192},
 //    @{@"img": @"a2.jpeg", @"h": @127,  @"w": @192},
