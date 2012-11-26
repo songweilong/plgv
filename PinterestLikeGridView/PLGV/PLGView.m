@@ -322,18 +322,13 @@
     NSLog(@"增加一个Cell: dataOffset:[%d, %d]", self.superscriptOfData, self.subscriptOfData);
     
     //test
-//    for (UIView *v in [self subviews]) {
-//        NSLog(@"CellY is %f", v.frame.origin.y);
-//    }
-    NSLog(@"||||||||");
-    NSLog(@"=============================");
-    NSLog(@"= [%@, %@, %@, %@, %@]", self.columnY[@0][@"upAdd"], self.columnY[@1][@"upAdd"], self.columnY[@2][@"upAdd"], self.columnY[@3][@"upAdd"], self.columnY[@4][@"upAdd"]);
-//    NSLog(@"= [%f]", origin.x);
-//    NSLog(@"= (%d)+%f", columnNumber+1, origin.y);
-    NSLog(@"= cell: %@", NSStringFromCGRect(cell.frame));
-    NSLog(@"= cell: %@", [cell description]);
-    NSLog(@"= imageView: %@", NSStringFromCGRect(imageView.frame));
-    NSLog(@"=============================");
+//    NSLog(@"||||||||");
+//    NSLog(@"=============================");
+//    NSLog(@"= [%@, %@, %@, %@, %@]", self.columnY[@0][@"upAdd"], self.columnY[@1][@"upAdd"], self.columnY[@2][@"upAdd"], self.columnY[@3][@"upAdd"], self.columnY[@4][@"upAdd"]);
+//    NSLog(@"= cell: %@", NSStringFromCGRect(cell.frame));
+//    NSLog(@"= cell: %@", [cell description]);
+//    NSLog(@"= imageView: %@", NSStringFromCGRect(imageView.frame));
+//    NSLog(@"=============================");
 }
 
 -(CGPoint)getOrigin:(NSString *)direction
