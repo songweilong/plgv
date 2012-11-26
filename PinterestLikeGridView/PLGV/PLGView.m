@@ -194,7 +194,7 @@
         while (cell = [enumerator nextObject])
         {
             //recycle cell
-            if (cell.frame.origin.y + cell.frame.size.height < self.currentOffsetY) {
+            if (cell.frame.origin.y + cell.frame.size.height + PRELOAD_HEIGHT < self.currentOffsetY) {
                 [self.cellsToBeRemoved addObject:cell];
             }
         }
@@ -216,7 +216,7 @@
         while (cell = [enumerator nextObject])
         {
             //recycle cell
-            if (cell.frame.origin.y > self.currentOffsetY + self.frameHeight) {
+            if (cell.frame.origin.y - PRELOAD_HEIGHT > self.currentOffsetY + self.frameHeight) {
                 [self.cellsToBeRemoved addObject:cell];
             }
         }
@@ -278,8 +278,6 @@
         cell.backgroundColor = [UIColor redColor];
         if (self.isScrollingSlow) {
             NSLog(@"插入图片%@", data[@"img"]);
-            NSLog(@"columnWidth: %d", self.columnWidth);
-            NSLog(@"data-h: %@", data[@"h"]);
             imageView.frame = CGRectMake(0, 0, self.columnWidth, [data[@"h"] floatValue]);
             imageView.image = [UIImage imageNamed:data[@"img"]];
             imageView.contentMode = UIViewContentModeScaleAspectFit;
@@ -299,6 +297,7 @@
             NSLog(@"插入图片%@", data[@"img"]);
             imageView.frame = CGRectMake(0, 0, self.columnWidth, [data[@"h"] floatValue]);
             imageView.image = [UIImage imageNamed:data[@"img"]];
+            imageView.contentMode = UIViewContentModeScaleAspectFit;
         }
         [self addSubview:cell];
         [self.visibleCellsPool addObject:cell];
