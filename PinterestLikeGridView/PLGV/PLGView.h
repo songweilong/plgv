@@ -16,10 +16,10 @@
 @property (nonatomic) float                columnWidthF;             //Column的宽度, float型
 @property (nonatomic) NSInteger            scrollViewHeight;         //瀑布流的总高度
 @property (nonatomic) NSArray             *data;                     //瀑布流的数据
-@property (nonatomic) NSInteger            superscriptOfData;        //使用中data的上标
-@property (nonatomic) NSInteger            subscriptOfData;          //使用中data的下标
 @property (nonatomic) NSMutableArray      *columnX;                  //存储每列的X坐标
-@property (nonatomic) NSMutableDictionary *columnY;                  //存储每列的Y坐标, 动态
+@property (nonatomic) NSMutableArray      *columnVisible;            //存储目前可见区域的列信息
+@property (nonatomic) NSMutableArray      *matrix;                   //存储瀑布流矩阵信息
+@property (nonatomic) NSInteger            countOfMatrix;            //瀑布流矩阵里面cell的个数
 @property (nonatomic) NSInteger            frameWidth;               //瀑布流外框的宽度
 @property (nonatomic) NSInteger            frameHeight;              //瀑布流外框的高度
 @property (nonatomic) NSMutableSet        *cellsPool;                //Cells池, 存储重用的Cells
