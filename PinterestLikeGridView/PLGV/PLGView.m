@@ -143,10 +143,12 @@
     if (self.currentOffsetY > self.offsetWillBeginDragging.y) {
         //如果是向上滚动
         [self render:@"up"];
+        [self recycle:@"up"];
         self.lastScrollDirection = @"up";
     } else if (self.currentOffsetY < self.offsetWillBeginDragging.y) {
         //如果是向下滚动
         [self render:@"down"];
+        [self recycle:@"down"];
         self.lastScrollDirection = @"down";
     }
 }
@@ -196,7 +198,7 @@
             }
         }
         [self.cellsToBeRemoved enumerateObjectsUsingBlock:^(UIView *cell, NSUInteger idx, BOOL *stop) {
-            NSLog(@"--------------%d", [self.cellsToBeRemoved count]);
+//            NSLog(@"--------------%d", [self.cellsToBeRemoved count]);
             [self recycleCells:direction cell:cell];
         }];
     }
@@ -212,7 +214,7 @@
             }
         }
         [self.cellsToBeRemoved enumerateObjectsUsingBlock:^(UIView *cell, NSUInteger idx, BOOL *stop) {
-            NSLog(@"--------------%d", [self.cellsToBeRemoved count]);
+//            NSLog(@"--------------%d", [self.cellsToBeRemoved count]);
             [self recycleCells:direction cell:cell];
         }];
     }
@@ -257,14 +259,14 @@
 }
 
 //向瀑布流添加Cells
--(void)renderCell:(NSString *)direction
+-(BOOL)renderCell:(NSString *)direction
 {
     self.workingInProgress = YES;
     //计算下一个cell的origin
     CGPoint origin = [self getOrigin:direction];
     if ([@"down" isEqualToString:direction] && origin.y <= 0) {
         self.workingInProgress = NO;
-        return; //处在最顶端并向下拖动的就不用再向上画内容了
+        return NO; //处在最顶端并向下拖动的就不用再向上画内容了
     }
     //计算要加入哪个column
     NSInteger column = [self getColumnNumberByX:origin.x];
@@ -272,7 +274,7 @@
     NSInteger i = [self getIndexInData:column originY:origin.y direction:direction];
     if (i < 0) {
         self.workingInProgress = NO;
-        return; //i<0说明没有得到数据的index, 说明已经到了数据末端
+        return NO; //i<0说明没有得到数据的index, 说明已经到了数据末端
     }
     NSDictionary *o = self.data[i];
     if (i >= self.countOfMatrix) {
@@ -306,11 +308,11 @@
         [cell setFrame:CGRectMake(origin.x, origin.y, self.columnWidth, [o[@"h"] floatValue])];
         imageView = (UIImageView *)[cell viewWithTag:10];
         cell.backgroundColor = [UIColor redColor];
-        if (self.isScrollingSlow) {
+//        if (self.isScrollingSlow) {
             imageView.frame = CGRectMake(0, 0, self.columnWidth, [o[@"h"] floatValue]);
             imageView.image = [UIImage imageNamed:o[@"img"]];
             imageView.contentMode = UIViewContentModeScaleAspectFit;
-        }
+//        }
         [self addSubview:cell];
         [self.visibleCellsPool addObject:cell];
         //更新当前可见区域的数组
@@ -320,11 +322,11 @@
     if ([@"down" isEqualToString:direction]) {
         [cell setFrame:CGRectMake(origin.x, (origin.y - self.columnSpace - [o[@"h"] intValue]), self.columnWidth, [o[@"h"] floatValue])];
         imageView = (UIImageView *)[cell viewWithTag:10];
-        if (self.isScrollingSlow) {
+//        if (self.isScrollingSlow) {
             imageView.frame = CGRectMake(0, 0, self.columnWidth, [o[@"h"] floatValue]);
             imageView.image = [UIImage imageNamed:o[@"img"]];
             imageView.contentMode = UIViewContentModeScaleAspectFit;
-        }
+//        }
         [self addSubview:cell];
         [self.visibleCellsPool addObject:cell];
         //更新当前可见区域的数组
@@ -339,12 +341,13 @@
 //    NSLog(@"[%@, %@, %@]", self.columnVisible[0][@"top"][@"indexInMatrix"], self.columnVisible[1][@"top"][@"indexInMatrix"], self.columnVisible[2][@"top"][@"indexInMatrix"]);
 //    NSLog(@"[%@, %@, %@]", self.columnVisible[0][@"bottom"][@"indexInMatrix"], self.columnVisible[1][@"bottom"][@"indexInMatrix"], self.columnVisible[2][@"bottom"][@"indexInMatrix"]);
 //    NSLog(@" ");
+    return YES;
 }
 
 -(NSInteger)getIndexInData:(NSInteger)column originY:(float)y direction:(NSString *)direction
 {
     __block NSInteger indexInData = -1;
-    NSLog(@"%d", self.countOfMatrix);
+//    NSLog(@"%d", self.countOfMatrix);
     [self.matrix[column] enumerateObjectsUsingBlock:^(NSDictionary *d , NSUInteger i, BOOL *stop) {
         float prevY = [@"down" isEqualToString:direction] ? [d[@"y"] floatValue] + [d[@"h"] floatValue] + self.columnSpace : [d[@"y"] floatValue];
         if (prevY == y) {
@@ -406,21 +409,30 @@
 {
     //在滚动结束后再检查一次是否已经把当前可见区域的cells都画好了
     NSString *direction = self.lastScrollDirection;
+    BOOL result;
     if (self.workingInProgress) {
         return;
     }
     self.cellsToBeRemoved = [@[] mutableCopy];
     if ([@"up" isEqualToString:direction]) {
         NSInteger bottomLowestHeight = [self getTheLowestHeightForAddingCell];
-        while (bottomLowestHeight - PRELOAD_HEIGHT <= self.currentOffsetY + self.frameHeight) {
-            [self renderCell:direction];
+        while (bottomLowestHeight <= self.currentOffsetY + self.frameHeight) {
+            NSLog(@"^^");
+            result = [self renderCell:direction];
+            if (!result) {
+                break;
+            }
         }
     }
     
     if([@"down" isEqualToString:direction]) {
         NSInteger topHighestHeight = [self getTheHighestHeightForAddingCell];
-        while (topHighestHeight + PRELOAD_HEIGHT >= self.currentOffsetY) {
-            [self renderCell:direction];
+        while (topHighestHeight >= self.currentOffsetY) {
+            NSLog(@"^^");
+            result = [self renderCell:direction];
+            if (!result) {
+                break;
+            }
         }
     }
 }
