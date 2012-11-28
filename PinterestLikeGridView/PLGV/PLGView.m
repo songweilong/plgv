@@ -131,7 +131,7 @@
         CGFloat scrollSpeed = fabsf(scrollSpeedF);
         //NSLog(@"=======================%f", currentTime);
         if (scrollSpeed > THRESHOLD_SPEED) {
-            //self.isScrollingSlow = NO;
+            self.isScrollingSlow = NO;
             //NSLog(@"=============>快速滚动");
         } else {
             self.isScrollingSlow = YES;
@@ -256,13 +256,7 @@
 //    NSLog(@" ");
 }
 
-/*
- * 向瀑布流添加Cells
- * column    (NSInteger) 向哪一列添加一个Cell
- * i         (NSInteger) 数据的index值, 用这个数据来render
- * direction (NSString)  目前正在向哪个方向滚动
- * origin    (CGPoint)   下一个Cell的坐标
- */
+//向瀑布流添加Cells
 -(void)renderCell:(NSString *)direction
 {
     self.workingInProgress = YES;
@@ -372,7 +366,6 @@
     NSInteger indexInMatrix = 0;
     for (NSInteger i = 0; i < count; i++) {
         if (y == [self.matrix[column][i][@"y"] floatValue]) {
-//            NSLog(@"getIndexInMatrix----%f----%f----indexInMatrix:%d", y, [self.matrix[column][i][@"y"] floatValue], indexInMatrix);
             indexInMatrix = i;
         }
     }
@@ -409,14 +402,9 @@
     return (x - self.columnSpace) / (self.columnSpace + self.columnWidth);
 }
 
--(void)scrollViewWillBeginDecelerating:(UIScrollView *)scrollView
-{
-}
-
 -(void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
 {
     [self recycle:self.lastScrollDirection];
-    NSLog(@">_<   >_<   >_<");
 }
 
 -(NSInteger)getTheLowestHeightForAddingCell
