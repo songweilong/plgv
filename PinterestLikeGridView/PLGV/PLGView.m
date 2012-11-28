@@ -404,7 +404,25 @@
 
 -(void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
 {
-    [self recycle:self.lastScrollDirection];
+    //在滚动结束后再检查一次是否已经把当前可见区域的cells都画好了
+    NSString *direction = self.lastScrollDirection;
+    if (self.workingInProgress) {
+        return;
+    }
+    self.cellsToBeRemoved = [@[] mutableCopy];
+    if ([@"up" isEqualToString:direction]) {
+        NSInteger bottomLowestHeight = [self getTheLowestHeightForAddingCell];
+        while (bottomLowestHeight - PRELOAD_HEIGHT <= self.currentOffsetY + self.frameHeight) {
+            [self renderCell:direction];
+        }
+    }
+    
+    if([@"down" isEqualToString:direction]) {
+        NSInteger topHighestHeight = [self getTheHighestHeightForAddingCell];
+        while (topHighestHeight + PRELOAD_HEIGHT >= self.currentOffsetY) {
+            [self renderCell:direction];
+        }
+    }
 }
 
 -(NSInteger)getTheLowestHeightForAddingCell
