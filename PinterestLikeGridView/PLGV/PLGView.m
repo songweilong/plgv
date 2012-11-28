@@ -11,7 +11,7 @@
 #define THRESHOLD_SPEED    1.0f   //THRESHOLD_SPEED是一个速度阀值, 如果scrollView滚动的速度低于它
                                   //则认为是慢速滚动, 人眼可以识别滚动的内容,我们就要向瀑布流中画入cells
                                   //这个值没有特定参考, 是实测出的一个较为合理的数据, 可以自行测试修改
-#define PRELOAD_HEIGHT     (self.frame.size.height/3)  //瀑布流高度的三分之一作为预读数据的高度
+#define PRELOAD_HEIGHT     (self.frame.size.height/2)  //瀑布流高度的三分之一作为预读数据的高度
 
 @implementation PLGView
 
@@ -194,7 +194,7 @@
         while (cell = [enumerator nextObject])
         {
             //recycle cell
-            if (cell.frame.origin.y + cell.frame.size.height /*+ PRELOAD_HEIGHT*/ < self.currentOffsetY) {
+            if (cell.frame.origin.y + cell.frame.size.height + PRELOAD_HEIGHT < self.currentOffsetY) {
                 [self.cellsToBeRemoved addObject:cell];
             }
         }
@@ -210,7 +210,7 @@
         while (cell = [enumerator nextObject])
         {
             //recycle cell
-            if (cell.frame.origin.y /*- PRELOAD_HEIGHT*/ > self.currentOffsetY + self.frameHeight) {
+            if (cell.frame.origin.y - PRELOAD_HEIGHT > self.currentOffsetY + self.frameHeight) {
                 [self.cellsToBeRemoved addObject:cell];
             }
         }
