@@ -29,7 +29,6 @@
         self.columnSpace         = columnSpace;
         self.columnWidthF        = (frame.size.width - (self.columns + 1) * self.columnSpace) / self.columns;
         self.columnWidth         = self.columnWidthF;
-        self.scrollViewHeight    = 0;
         self.data                = data;
         self.columnX             = [NSMutableArray arrayWithCapacity:self.columns];
         self.columnVisible       = [NSMutableArray arrayWithCapacity:self.columns];
@@ -38,6 +37,7 @@
         self.visibleCellsPool    = [NSMutableSet set];
         self.frameWidth          = frame.size.width;
         self.frameHeight         = frame.size.height;
+        self.scrollViewHeight    = self.frameHeight + 1;
         self.currentOffsetY      = 0;
         self.isScrollingSlow     = YES;
         self.workingInProgress   = NO;
@@ -45,6 +45,7 @@
         self.lastScrollDirection = @"up";
         
         [self initProperties];
+        self.contentSize = CGSizeMake(self.frameWidth, self.scrollViewHeight);
         //测试数据 TODO: to be deleted
         self.data = [self getTestData];
     }
@@ -287,9 +288,10 @@
         self.countOfMatrix++;
     }
     
-    if (origin.y + [o[@"h"] floatValue] > self.scrollViewHeight) {
-        //更新瀑布流的总高度
-        self.scrollViewHeight = origin.y + [o[@"h"] floatValue];
+    //更新瀑布流的总高度
+    NSInteger scrollViewHeight = [self getTheHighestColumnHeight];
+    if (scrollViewHeight > self.scrollViewHeight) {
+        self.scrollViewHeight = scrollViewHeight;
         self.contentSize = CGSizeMake(self.frameWidth, self.scrollViewHeight);
     }
     
@@ -435,6 +437,18 @@
             }
         }
     }
+    NSLog(@"contentSize height: %d", self.scrollViewHeight);
+}
+
+-(NSInteger)getTheHighestColumnHeight
+{
+    id y = self.columnVisible[0][@"bottom"][@"y"];
+    for (NSInteger i = 1; i < self.columns; i++) {
+        if ([self.columnVisible[i][@"bottom"][@"y"] floatValue] > [y floatValue]) {
+            y = self.columnVisible[i][@"bottom"][@"y"];
+        }
+    }
+    return [y intValue];
 }
 
 -(NSInteger)getTheLowestHeightForAddingCell
@@ -447,7 +461,6 @@
     }
     return [y intValue];
 }
-
 
 -(NSInteger)getTheHighestHeightForAddingCell
 {
