@@ -32,6 +32,7 @@
 @property (nonatomic) BOOL                 isLastScrolledUp;         //计算滚动方向: 记录上一次的滚动方向
 @property (nonatomic) CGPoint              offsetWillBeginDragging;  //计算滚动方向: 开始拖拽时候的offset记录下来
 @property (nonatomic) BOOL                 workingInProgress;        //正在增减cell, 请勿打扰
+@property (nonatomic) NSString            *lastScrollDirection;      //上一次滚动的方向
 
 - (id)initWithConfig:(CGRect)frame                              //自定义的init方法, 可配置瀑布流参数
              columns:(NSInteger)columns

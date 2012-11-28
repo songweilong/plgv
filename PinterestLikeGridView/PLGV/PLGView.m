@@ -23,25 +23,26 @@
     self = [super initWithFrame:frame];
     if (self) {
         //初始化参数
-        self.delegate          = self;
-        self.backgroundColor   = [UIColor greenColor];
-        self.columns           = columns;
-        self.columnSpace       = columnSpace;
-        self.columnWidthF      = (frame.size.width - (self.columns + 1) * self.columnSpace) / self.columns;
-        self.columnWidth       = self.columnWidthF;
-        self.scrollViewHeight  = 0;
-        self.data              = data;
-        self.columnX           = [NSMutableArray arrayWithCapacity:self.columns];
-        self.columnVisible     = [NSMutableArray arrayWithCapacity:self.columns];
-        self.matrix            = [NSMutableArray arrayWithCapacity:self.columns];
-        self.cellsPool         = [NSMutableSet set];
-        self.visibleCellsPool  = [NSMutableSet set];
-        self.frameWidth        = frame.size.width;
-        self.frameHeight       = frame.size.height;
-        self.currentOffsetY    = 0;
-        self.isScrollingSlow   = YES;
-        self.workingInProgress = NO;
-        self.countOfMatrix     = 0;
+        self.delegate            = self;
+        self.backgroundColor     = [UIColor greenColor];
+        self.columns             = columns;
+        self.columnSpace         = columnSpace;
+        self.columnWidthF        = (frame.size.width - (self.columns + 1) * self.columnSpace) / self.columns;
+        self.columnWidth         = self.columnWidthF;
+        self.scrollViewHeight    = 0;
+        self.data                = data;
+        self.columnX             = [NSMutableArray arrayWithCapacity:self.columns];
+        self.columnVisible       = [NSMutableArray arrayWithCapacity:self.columns];
+        self.matrix              = [NSMutableArray arrayWithCapacity:self.columns];
+        self.cellsPool           = [NSMutableSet set];
+        self.visibleCellsPool    = [NSMutableSet set];
+        self.frameWidth          = frame.size.width;
+        self.frameHeight         = frame.size.height;
+        self.currentOffsetY      = 0;
+        self.isScrollingSlow     = YES;
+        self.workingInProgress   = NO;
+        self.countOfMatrix       = 0;
+        self.lastScrollDirection = @"up";
         
         [self initProperties];
         //测试数据 TODO: to be deleted
@@ -141,10 +142,12 @@
     }
     if (self.currentOffsetY > self.offsetWillBeginDragging.y) {
         //如果是向上滚动
-        [self handleCells:@"up"];
+        [self render:@"up"];
+        self.lastScrollDirection = @"up";
     } else if (self.currentOffsetY < self.offsetWillBeginDragging.y) {
         //如果是向下滚动
-        [self handleCells:@"down"];
+        [self render:@"down"];
+        self.lastScrollDirection = @"down";
     }
 }
 
@@ -154,10 +157,10 @@
 }
 
 //处理将要增加和删除的cells
--(void)handleCells:(NSString *)direction
+-(void)render:(NSString *)direction
 {
     if (self.workingInProgress) {
-        //return;
+        return;
     }
     self.cellsToBeRemoved = [@[] mutableCopy];
     if ([@"up" isEqualToString:direction]) {
@@ -166,67 +169,91 @@
         if (bottomLowestHeight - PRELOAD_HEIGHT <= self.currentOffsetY + self.frameHeight) {
             [self renderCell:direction];
         }
-        NSEnumerator *enumerator = [self.visibleCellsPool objectEnumerator];
-        UIView *cell;
-        while (cell = [enumerator nextObject])
-        {
-            //recycle cell
-            if (cell.frame.origin.y + cell.frame.size.height + PRELOAD_HEIGHT < self.currentOffsetY) {
-                [self.cellsToBeRemoved addObject:cell];
-            }
-        }
-        [self.cellsToBeRemoved enumerateObjectsUsingBlock:^(UIView *cell, NSUInteger idx, BOOL *stop) {
-            [self recycleCells:direction cell:cell];
-        }];
     }
     
     if([@"down" isEqualToString:direction]) {
         NSInteger topHighestHeight = [self getTheHighestHeightForAddingCell];
         //render cell
         if (topHighestHeight + PRELOAD_HEIGHT >= self.currentOffsetY) {
-            NSLog(@"%d+%f>=%d", topHighestHeight, PRELOAD_HEIGHT, self.currentOffsetY);
             [self renderCell:direction];
         }
+    }
+    
+}
+
+//删除cells
+-(void)recycle:(NSString *)direction
+{
+    self.cellsToBeRemoved = [@[] mutableCopy];
+    if ([@"up" isEqualToString:direction]) {
         NSEnumerator *enumerator = [self.visibleCellsPool objectEnumerator];
         UIView *cell;
         while (cell = [enumerator nextObject])
         {
             //recycle cell
-            if (cell.frame.origin.y - PRELOAD_HEIGHT > self.currentOffsetY + self.frameHeight) {
+            if (cell.frame.origin.y + cell.frame.size.height /*+ PRELOAD_HEIGHT*/ < self.currentOffsetY) {
                 [self.cellsToBeRemoved addObject:cell];
             }
         }
         [self.cellsToBeRemoved enumerateObjectsUsingBlock:^(UIView *cell, NSUInteger idx, BOOL *stop) {
+            NSLog(@"--------------%d", [self.cellsToBeRemoved count]);
+            [self recycleCells:direction cell:cell];
+        }];
+    }
+    
+    if([@"down" isEqualToString:direction]) {
+        NSEnumerator *enumerator = [self.visibleCellsPool objectEnumerator];
+        UIView *cell;
+        while (cell = [enumerator nextObject])
+        {
+            //recycle cell
+            if (cell.frame.origin.y /*- PRELOAD_HEIGHT*/ > self.currentOffsetY + self.frameHeight) {
+                [self.cellsToBeRemoved addObject:cell];
+            }
+        }
+        [self.cellsToBeRemoved enumerateObjectsUsingBlock:^(UIView *cell, NSUInteger idx, BOOL *stop) {
+            NSLog(@"--------------%d", [self.cellsToBeRemoved count]);
             [self recycleCells:direction cell:cell];
         }];
     }
     
 }
 
+
 //回收cells
 -(void)recycleCells:(NSString *)direction cell:(UIView *)cell
 {
-    //return;
-    NSLog(@" ");
-    NSLog(@"**********************");
+//    NSLog(@"------------------------------------------------------------->");
     NSInteger column = [self getColumnNumberByX:cell.frame.origin.x];
+    NSDictionary *cv = self.columnVisible[column];
     //获取cell在瀑布流矩阵数组中的index值
     NSInteger indexInMatrix = [self getIndexInMatrix:column originY:cell.frame.origin.y];
+    NSLog(@"indexInMatrix is : %d", indexInMatrix);
     [self.cellsPool addObject:cell];
     [cell removeFromSuperview];
     [self.visibleCellsPool removeObject:cell];
-    NSLog(@"* 销毁了一个Cell: %@", [cell description]);
     
     if([@"up" isEqualToString:direction]) {
-        self.columnVisible[column][@"top"][@"y"] = @(cell.frame.origin.y + cell.frame.size.height + self.columnSpace);
-        self.columnVisible[column][@"top"][@"indexInMatrix"] = @(indexInMatrix + 1);
+        if (cell.frame.origin.y >= [cv[@"top"][@"y"] floatValue]) {
+            cv[@"top"][@"y"] = @(cell.frame.origin.y + cell.frame.size.height + self.columnSpace);
+            cv[@"top"][@"indexInMatrix"] = @(indexInMatrix + 1);
+        }
     }
     
     if([@"down" isEqualToString:direction]) {
-        self.columnVisible[column][@"bottom"][@"y"] = @(cell.frame.origin.y);
-        self.columnVisible[column][@"bottom"][@"indexInMatrix"] = @(indexInMatrix - 1);
+        if (cell.frame.origin.y <= [cv[@"bottom"][@"y"] floatValue]) {
+            cv[@"bottom"][@"y"] = @(cell.frame.origin.y);
+            cv[@"bottom"][@"indexInMatrix"] = @(indexInMatrix - 1);
+        }
     }
-    NSLog(@"**********************");
+//    NSLog(@"[%@, %@, %@]", self.columnVisible[0][@"top"][@"y"], self.columnVisible[1][@"top"][@"y"], self.columnVisible[2][@"top"][@"y"]);
+//    NSLog(@"[%@, %@, %@]", self.columnVisible[0][@"bottom"][@"y"], self.columnVisible[1][@"bottom"][@"y"], self.columnVisible[2][@"bottom"][@"y"]);
+//    NSLog(@"[%@, %@, %@]", self.columnVisible[0][@"top"][@"indexInMatrix"], self.columnVisible[1][@"top"][@"indexInMatrix"], self.columnVisible[2][@"top"][@"indexInMatrix"]);
+//    NSLog(@"[%@, %@, %@]", self.columnVisible[0][@"bottom"][@"indexInMatrix"], self.columnVisible[1][@"bottom"][@"indexInMatrix"], self.columnVisible[2][@"bottom"][@"indexInMatrix"]);
+//    NSLog(@"I am scrolling %@", self.lastScrollDirection);
+//    NSLog(@"Deleting image with height %f", cell.frame.size.height);
+//    NSLog(@"%@", self.matrix[column]);
+//    NSLog(@" ");
 }
 
 /*
@@ -239,10 +266,10 @@
 -(void)renderCell:(NSString *)direction
 {
     self.workingInProgress = YES;
-    
     //计算下一个cell的origin
     CGPoint origin = [self getOrigin:direction];
     if ([@"down" isEqualToString:direction] && origin.y <= 0) {
+        self.workingInProgress = NO;
         return; //处在最顶端并向下拖动的就不用再向上画内容了
     }
     //计算要加入哪个column
@@ -250,10 +277,10 @@
     //计算用哪个data来做cell的内容
     NSInteger i = [self getIndexInData:column originY:origin.y direction:direction];
     if (i < 0) {
+        self.workingInProgress = NO;
         return; //i<0说明没有得到数据的index, 说明已经到了数据末端
     }
     NSDictionary *o = self.data[i];
-    NSLog(@"%d----%d", i, self.countOfMatrix);
     if (i >= self.countOfMatrix) {
         //新增的数据增加到matrix中
         [self.matrix[column] addObject:@{
@@ -292,7 +319,6 @@
         }
         [self addSubview:cell];
         [self.visibleCellsPool addObject:cell];
-        NSLog(@"= 下面增加了一个Cell: %@", [cell description]);
         //更新当前可见区域的数组
         self.columnVisible[column][@"bottom"][@"y"] = @(origin.y + [o[@"h"] floatValue] + self.columnSpace);
         self.columnVisible[column][@"bottom"][@"indexInMatrix"] = @(indexInMatrix);
@@ -307,20 +333,18 @@
         }
         [self addSubview:cell];
         [self.visibleCellsPool addObject:cell];
-        NSLog(@"= 上面增加了一个Cell: %@", [cell description]);
         //更新当前可见区域的数组
         self.columnVisible[column][@"top"][@"y"] = @(origin.y - [o[@"h"] floatValue] - self.columnSpace);
-        self.columnVisible[column][@"top"][@"indexInMatrix"] = @(indexInMatrix);
+        self.columnVisible[column][@"top"][@"indexInMatrix"] = @(indexInMatrix - 1);
     }
     [self.cellsPool removeObject:cell];
-    
     self.workingInProgress = NO;
-    NSLog(@"============================================>");
-    NSLog(@"columnVisible:%@", self.columnVisible);
-    NSLog(@"column: %d", column);
-    NSLog(@"matrix%d:%@", column, self.matrix[column]);
-    NSLog(@" ");
-
+//    NSLog(@"++++++++++++++++++++++++++++++++>");
+//    NSLog(@"[%@, %@, %@]", self.columnVisible[0][@"top"][@"y"], self.columnVisible[1][@"top"][@"y"], self.columnVisible[2][@"top"][@"y"]);
+//    NSLog(@"[%@, %@, %@]", self.columnVisible[0][@"bottom"][@"y"], self.columnVisible[1][@"bottom"][@"y"], self.columnVisible[2][@"bottom"][@"y"]);
+//    NSLog(@"[%@, %@, %@]", self.columnVisible[0][@"top"][@"indexInMatrix"], self.columnVisible[1][@"top"][@"indexInMatrix"], self.columnVisible[2][@"top"][@"indexInMatrix"]);
+//    NSLog(@"[%@, %@, %@]", self.columnVisible[0][@"bottom"][@"indexInMatrix"], self.columnVisible[1][@"bottom"][@"indexInMatrix"], self.columnVisible[2][@"bottom"][@"indexInMatrix"]);
+//    NSLog(@" ");
 }
 
 -(NSInteger)getIndexInData:(NSInteger)column originY:(float)y direction:(NSString *)direction
@@ -348,7 +372,7 @@
     NSInteger indexInMatrix = 0;
     for (NSInteger i = 0; i < count; i++) {
         if (y == [self.matrix[column][i][@"y"] floatValue]) {
-            NSLog(@"getIndexInMatrix----%f----%f----indexInMatrix:%d", y, [self.matrix[column][i][@"y"] floatValue], indexInMatrix);
+//            NSLog(@"getIndexInMatrix----%f----%f----indexInMatrix:%d", y, [self.matrix[column][i][@"y"] floatValue], indexInMatrix);
             indexInMatrix = i;
         }
     }
@@ -385,6 +409,15 @@
     return (x - self.columnSpace) / (self.columnSpace + self.columnWidth);
 }
 
+-(void)scrollViewWillBeginDecelerating:(UIScrollView *)scrollView
+{
+}
+
+-(void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
+{
+    [self recycle:self.lastScrollDirection];
+    NSLog(@">_<   >_<   >_<");
+}
 
 -(NSInteger)getTheLowestHeightForAddingCell
 {
