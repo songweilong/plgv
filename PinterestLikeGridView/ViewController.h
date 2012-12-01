@@ -9,7 +9,7 @@
 #import <UIKit/UIKit.h>
 #import "PLGView.h"
 
-@interface ViewController : UIViewController
+@interface ViewController : UIViewController<PLGViewDelegate>
 
 @property (nonatomic) PLGView *plgvView;
 @end

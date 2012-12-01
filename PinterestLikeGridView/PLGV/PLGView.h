@@ -50,9 +50,9 @@
 
 @protocol PLGViewDelegate <NSObject>
 
--(UIView *)plgvView:(PLGView *)plgbView cellForRow:(NSString *)row;
--(CGFloat)plgvView:(PLGView *)plgbView heightForCell:(NSString *)row;
--(CGFloat)plgvView:(PLGView *)plgbView widthForCell:(NSString *)row;
+-(UIView *)plgvView:(PLGView *)plgbView cellForRow:(NSInteger )row;
+-(CGFloat)plgvView:(PLGView *)plgbView heightForCell:(NSInteger )row;
+-(CGFloat)plgvView:(PLGView *)plgbView widthForCell:(NSInteger )row;
 @end
 
 

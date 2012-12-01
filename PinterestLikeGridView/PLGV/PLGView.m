@@ -107,10 +107,10 @@
 -(void)addCellInToCellsPoll
 {
     UIView *cell = [[UIView alloc] init];
-    UIImageView *imageView = [[UIImageView alloc] init];
-    [imageView setTag:10];
-    [cell setBackgroundColor:[UIColor whiteColor]];
-    [cell addSubview:imageView];
+//    UIImageView *imageView = [[UIImageView alloc] init];
+//    [imageView setTag:10];
+//    [cell setBackgroundColor:[UIColor whiteColor]];
+//    [cell addSubview:imageView];
     [self.cellsPool addObject:cell];
 }
 
@@ -277,11 +277,12 @@
         return NO; //i<0说明没有得到数据的index, 说明已经到了数据末端
     }
     NSDictionary *o = self.data[i];
+    CGFloat h = [self.plgvDelegate plgvView:self heightForCell:i];
     if (i >= self.countOfMatrix) {
         //新增的数据增加到matrix中
         [self.matrix[column] addObject:@{
          @"y" : @(origin.y),
-         @"h" : @([o[@"h"] floatValue]),
+         @"h" : @(h),
          @"indexInData" : @(i)
          }];
         self.countOfMatrix++;
@@ -302,36 +303,36 @@
     if (cellsPollSize <= 0) {
         [self addCellInToCellsPoll];
     }
-    
-    UIView *cell = [self.cellsPool anyObject];
+    UIView *cell = [self.plgvDelegate plgvView:self cellForRow:i];
+//    UIView *cell = [self.cellsPool anyObject];
     UIImageView *imageView;
     if ([@"up" isEqualToString:direction]) {
-        [cell setFrame:CGRectMake(origin.x, origin.y, self.columnWidth, [o[@"h"] floatValue])];
-        imageView = (UIImageView *)[cell viewWithTag:10];
-        cell.backgroundColor = [UIColor redColor];
-//        if (self.isScrollingSlow) {
-            imageView.frame = CGRectMake(0, 0, self.columnWidth, [o[@"h"] floatValue]);
-            imageView.image = [UIImage imageNamed:o[@"img"]];
-            imageView.contentMode = UIViewContentModeScaleAspectFit;
-//        }
+        [cell setFrame:CGRectMake(origin.x, origin.y, self.columnWidth, h)];
+//        imageView = (UIImageView *)[cell viewWithTag:10];
+//        cell.backgroundColor = [UIColor redColor];
+////        if (self.isScrollingSlow) {
+//            imageView.frame = CGRectMake(0, 0, self.columnWidth, [o[@"h"] floatValue]);
+//            imageView.image = [UIImage imageNamed:o[@"img"]];
+//            imageView.contentMode = UIViewContentModeScaleAspectFit;
+////        }
         [self addSubview:cell];
         [self.visibleCellsPool addObject:cell];
         //更新当前可见区域的数组
-        self.columnVisible[column][@"bottom"][@"y"] = @(origin.y + [o[@"h"] floatValue] + self.columnSpace);
+        self.columnVisible[column][@"bottom"][@"y"] = @(origin.y + h + self.columnSpace);
         self.columnVisible[column][@"bottom"][@"indexInMatrix"] = @(indexInMatrix);
     }
     if ([@"down" isEqualToString:direction]) {
-        [cell setFrame:CGRectMake(origin.x, (origin.y - self.columnSpace - [o[@"h"] intValue]), self.columnWidth, [o[@"h"] floatValue])];
-        imageView = (UIImageView *)[cell viewWithTag:10];
-//        if (self.isScrollingSlow) {
-            imageView.frame = CGRectMake(0, 0, self.columnWidth, [o[@"h"] floatValue]);
-            imageView.image = [UIImage imageNamed:o[@"img"]];
-            imageView.contentMode = UIViewContentModeScaleAspectFit;
-//        }
+        [cell setFrame:CGRectMake(origin.x, (origin.y - self.columnSpace - h), self.columnWidth, h)];
+//        imageView = (UIImageView *)[cell viewWithTag:10];
+////        if (self.isScrollingSlow) {
+//            imageView.frame = CGRectMake(0, 0, self.columnWidth, [o[@"h"] floatValue]);
+//            imageView.image = [UIImage imageNamed:o[@"img"]];
+//            imageView.contentMode = UIViewContentModeScaleAspectFit;
+////        }
         [self addSubview:cell];
         [self.visibleCellsPool addObject:cell];
         //更新当前可见区域的数组
-        self.columnVisible[column][@"top"][@"y"] = @(origin.y - [o[@"h"] floatValue] - self.columnSpace);
+        self.columnVisible[column][@"top"][@"y"] = @(origin.y - h - self.columnSpace);
         self.columnVisible[column][@"top"][@"indexInMatrix"] = @(indexInMatrix - 1);
     }
     [self.cellsPool removeObject:cell];
@@ -478,7 +479,7 @@
 
 #pragma mark - plgvDelegate
 -(UIView *)dequeueReusableCellWithIdentifier:(NSString *)identifier{
-    UIView *view = [[UIView alloc] init];
-    return view;
+    UIView *cell = [self.cellsPool anyObject];
+    return cell;
 }
 @end
