@@ -8,7 +8,12 @@
 
 #import <UIKit/UIKit.h>
 
+@protocol PLGViewDelegate;
+
+
 @interface PLGView : UIScrollView <UIScrollViewDelegate>
+
+@property (nonatomic, weak) id <PLGViewDelegate> plgvDelegate;   //回调
 
 @property (nonatomic) NSInteger            columns;                  //瀑布流的列数
 @property (nonatomic) NSInteger            columnSpace;              //Cell之间的间距
@@ -38,4 +43,15 @@
              columns:(NSInteger)columns
          columnSpace:(NSInteger)columnSpace
                 data:(NSArray *)data;
+
+-(UIView *)dequeueReusableCellWithIdentifier:(NSString *)identifier;
 @end
+
+@protocol PLGViewDelegate <NSObject>
+
+-(UIView *)plgvView:(PLGView *)plgbView cellForRow:(NSString *)row;
+-(CGFloat)plgvView:(PLGView *)plgbView heightForCell:(NSString *)row;
+-(CGFloat)plgvView:(PLGView *)plgbView widthForCell:(NSString *)row;
+@end
+
+
