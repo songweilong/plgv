@@ -29,11 +29,13 @@
         self.columnSpace         = columnSpace;
         self.columnWidthF        = (frame.size.width - (self.columns + 1) * self.columnSpace) / self.columns;
         self.columnWidth         = self.columnWidthF;
+        self.cellWidth           = self.columnWidth;
         self.data                = [NSMutableArray arrayWithArray:data];
         self.columnX             = [NSMutableArray arrayWithCapacity:self.columns];
         self.columnVisible       = [NSMutableArray arrayWithCapacity:self.columns];
         self.matrix              = [NSMutableArray arrayWithCapacity:self.columns];
         self.cellsPool           = [NSMutableSet set];
+        self.cellsPools          = [NSMutableDictionary dictionary];
         self.visibleCellsPool    = [NSMutableSet set];
         self.frameWidth          = frame.size.width;
         self.frameHeight         = frame.size.height;
@@ -106,7 +108,7 @@
 //在内存中创建一个cell并且增加到cells池中
 -(void)addCellInToCellsPoll
 {
-    UIView *cell = [[UIView alloc] init];
+    PLGViewCell *cell = [[PLGViewCell alloc] init];
     cell.backgroundColor = [UIColor clearColor];
 //    UIImageView *imageView = [[UIImageView alloc] init];
 //    [imageView setTag:10];
@@ -190,7 +192,7 @@
     self.cellsToBeRemoved = [@[] mutableCopy];
     if ([@"up" isEqualToString:direction]) {
         NSEnumerator *enumerator = [self.visibleCellsPool objectEnumerator];
-        UIView *cell;
+        PLGViewCell *cell;
         while (cell = [enumerator nextObject])
         {
             //recycle cell
@@ -198,7 +200,7 @@
                 [self.cellsToBeRemoved addObject:cell];
             }
         }
-        [self.cellsToBeRemoved enumerateObjectsUsingBlock:^(UIView *cell, NSUInteger idx, BOOL *stop) {
+        [self.cellsToBeRemoved enumerateObjectsUsingBlock:^(PLGViewCell *cell, NSUInteger idx, BOOL *stop) {
 //            NSLog(@"--------------%d", [self.cellsToBeRemoved count]);
             [self recycleCells:direction cell:cell];
         }];
@@ -206,7 +208,7 @@
     
     if([@"down" isEqualToString:direction]) {
         NSEnumerator *enumerator = [self.visibleCellsPool objectEnumerator];
-        UIView *cell;
+        PLGViewCell *cell;
         while (cell = [enumerator nextObject])
         {
             //recycle cell
@@ -214,7 +216,7 @@
                 [self.cellsToBeRemoved addObject:cell];
             }
         }
-        [self.cellsToBeRemoved enumerateObjectsUsingBlock:^(UIView *cell, NSUInteger idx, BOOL *stop) {
+        [self.cellsToBeRemoved enumerateObjectsUsingBlock:^(PLGViewCell *cell, NSUInteger idx, BOOL *stop) {
 //            NSLog(@"--------------%d", [self.cellsToBeRemoved count]);
             [self recycleCells:direction cell:cell];
         }];
@@ -224,18 +226,22 @@
 
 
 //回收cells
--(void)recycleCells:(NSString *)direction cell:(UIView *)cell
+-(void)recycleCells:(NSString *)direction cell:(PLGViewCell *)cell
 {
 //    NSLog(@"------------------------------------------------------------->");
     NSInteger column = [self getColumnNumberByX:cell.frame.origin.x];
     NSDictionary *cv = self.columnVisible[column];
     //获取cell在瀑布流矩阵数组中的index值
     NSInteger indexInMatrix = [self getIndexInMatrix:column originY:cell.frame.origin.y];
-    NSLog(@"indexInMatrix is : %d", indexInMatrix);
-    [self.cellsPool addObject:cell];
+//    NSLog(@"indexInMatrix is : %d", indexInMatrix);
+//    [self.cellsPool addObject:cell];
+    
+    NSMutableSet *set = [self getPoolSet:cell.reuseIdentifier];
+    [set addObject:cell];
+    
     [cell removeFromSuperview];
     [self.visibleCellsPool removeObject:cell];
-    
+//    NSLog(@"recycleCells poolcount :%d", set.count);
     if([@"up" isEqualToString:direction]) {
         if (cell.frame.origin.y >= [cv[@"top"][@"y"] floatValue]) {
             cv[@"top"][@"y"] = @(cell.frame.origin.y + cell.frame.size.height + self.columnSpace);
@@ -300,13 +306,13 @@
     NSInteger indexInMatrix = [self getIndexInMatrix:column originY:origin.y];
     
     //看看cells池中是否还有可用的cell,如果没有就创建一个放进去
-    NSInteger cellsPollSize = [self.cellsPool count];
-    if (cellsPollSize <= 0) {
-        [self addCellInToCellsPoll];
-    }
-    UIView *cell = [self.plgvDelegate plgvView:self cellForRow:i];
+//    NSInteger cellsPollSize = [self.cellsPool count];
+//    if (cellsPollSize <= 0) {
+//        [self addCellInToCellsPoll];
+//    }
+    PLGViewCell *cell = [self.plgvDelegate plgvView:self cellForRow:i];
 //    UIView *cell = [self.cellsPool anyObject];
-    UIImageView *imageView;
+//    UIImageView *imageView;
     if ([@"up" isEqualToString:direction]) {
         [cell setFrame:CGRectMake(origin.x, origin.y, self.columnWidth, h)];
 //        imageView = (UIImageView *)[cell viewWithTag:10];
@@ -478,9 +484,34 @@
 
 
 
-#pragma mark - plgvDelegate
--(UIView *)dequeueReusableCellWithIdentifier:(NSString *)identifier{
-    UIView *cell = [self.cellsPool anyObject];
+-(NSMutableSet *)getPoolSet:(NSString *)identifier{
+    NSMutableSet *set = self.cellsPools[identifier];
+    if(set == nil){
+        set = [NSMutableSet set];
+        self.cellsPools[identifier] = set;
+    }
+    return set;
+}
+#pragma mark - public method
+-(PLGViewCell *)dequeueReusableCellWithIdentifier:(NSString *)identifier{
+    NSMutableSet *set = [self getPoolSet:identifier];
+//    NSLog(@"get reuse cell's count:%d", [set count]);
+    PLGViewCell *cell = [set anyObject];
+    if(cell){
+        [set removeObject:cell];
+    }
     return cell;
+}
+
+@end
+
+#pragma mark - PLGViewCell
+@implementation PLGViewCell
+-(id)initWithReuseIdentifier:(NSString *)indentifier{
+    self = [super init];
+    if(self){
+        self.reuseIdentifier = indentifier;
+    }
+    return self;
 }
 @end

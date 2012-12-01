@@ -195,8 +195,15 @@
 }
 
 #pragma mark - plgvDelegate
--(UIView *)plgvView:(PLGView *)plgbView cellForRow:(NSInteger)row{
-    UIView *cell = [plgbView dequeueReusableCellWithIdentifier:@""];
+-(PLGViewCell *)plgvView:(PLGView *)plgbView cellForRow:(NSInteger)row{
+    NSString *identifier = @"cell";
+    PLGViewCell *cell = [plgbView dequeueReusableCellWithIdentifier:identifier];
+    if(cell == nil){
+        NSLog(@"new cell in row :%d", row);
+        cell = [[PLGViewCell alloc] initWithReuseIdentifier:identifier];
+    }else{
+        NSLog(@"reuse in row:%d",row);
+    }
     UIImageView *imageView = (UIImageView *)[cell viewWithTag:10];
     if(!imageView){
         imageView = [[UIImageView alloc] init];
@@ -213,8 +220,5 @@
     CGFloat h = [plgbView.data[row][@"h"] floatValue];
     return h;
 }
--(CGFloat)plgvView:(PLGView *)plgbView widthForCell:(NSInteger)row{
-    CGFloat w = [plgbView.data[row][@"w"] floatValue];
-    return w;
-}
+
 @end
