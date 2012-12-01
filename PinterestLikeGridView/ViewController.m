@@ -21,7 +21,7 @@
     _plgvView = [[PLGView alloc] initWithConfig:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height)
                                                  columns:5
                                              columnSpace:10
-                                                    data:[self getTestData]];
+                                                    data:nil];
     _plgvView.plgvDelegate = self;
     [self.view addSubview:_plgvView];
     NSLog(@"w%f, h%f", self.view.frame.size.width, self.view.frame.size.height);
