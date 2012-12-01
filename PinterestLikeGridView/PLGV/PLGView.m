@@ -63,8 +63,8 @@
         
         //初始化columnVisible
         self.columnVisible[i] = [@{
-            @"top"    : [@{@"y" : @0, @"indexInMatrix" : @0} mutableCopy],
-            @"bottom" : [@{@"y" : @0, @"indexInMatrix" : @0} mutableCopy]
+            @"top"    : [@{@"y" : @10, @"indexInMatrix" : @0} mutableCopy],
+            @"bottom" : [@{@"y" : @10, @"indexInMatrix" : @0} mutableCopy]
         } mutableCopy];
         
         //初始化matrix
@@ -107,6 +107,7 @@
 -(void)addCellInToCellsPoll
 {
     UIView *cell = [[UIView alloc] init];
+    cell.backgroundColor = [UIColor clearColor];
 //    UIImageView *imageView = [[UIImageView alloc] init];
 //    [imageView setTag:10];
 //    [cell setBackgroundColor:[UIColor whiteColor]];
