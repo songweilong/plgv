@@ -20,7 +20,7 @@
 @property (nonatomic) NSInteger            columnWidth;              //Column的宽度, int型
 @property (nonatomic) float                columnWidthF;             //Column的宽度, float型
 @property (nonatomic) NSInteger            scrollViewHeight;         //瀑布流的总高度
-@property (nonatomic) NSArray             *data;                     //瀑布流的数据
+@property (nonatomic) NSMutableArray       *data;                     //瀑布流的数据
 @property (nonatomic) NSMutableArray      *columnX;                  //存储每列的X坐标
 @property (nonatomic) NSMutableArray      *columnVisible;            //存储目前可见区域的列信息
 @property (nonatomic) NSMutableArray      *matrix;                   //存储瀑布流矩阵信息
@@ -44,7 +44,8 @@
          columnSpace:(NSInteger)columnSpace
                 data:(NSArray *)data;
 
--(UIView *)dequeueReusableCellWithIdentifier:(NSString *)identifier;
+-(UIView *)dequeueReusableCellWithIdentifier:(NSString *)identifier;   //获取一个可用cell,没有时创建新的
+-(void)redrawVisibleScrollView;   //重画当前可见区域，在添加新数据后，执行
 @end
 
 @protocol PLGViewDelegate <NSObject>

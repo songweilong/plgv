@@ -11,4 +11,5 @@
 
 @interface ViewController : UIViewController
 
+@property (nonatomic) PLGView *plgvView;
 @end

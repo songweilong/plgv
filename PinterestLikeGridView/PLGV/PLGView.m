@@ -29,7 +29,7 @@
         self.columnSpace         = columnSpace;
         self.columnWidthF        = (frame.size.width - (self.columns + 1) * self.columnSpace) / self.columns;
         self.columnWidth         = self.columnWidthF;
-        self.data                = data;
+        self.data                = [NSMutableArray arrayWithArray:data];
         self.columnX             = [NSMutableArray arrayWithCapacity:self.columns];
         self.columnVisible       = [NSMutableArray arrayWithCapacity:self.columns];
         self.matrix              = [NSMutableArray arrayWithCapacity:self.columns];
@@ -409,6 +409,9 @@
 -(void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView
 {
     //在滚动结束后再检查一次是否已经把当前可见区域的cells都画好了
+    [self redrawVisibleScrollView];
+}
+-(void)redrawVisibleScrollView{
     NSString *direction = self.lastScrollDirection;
     BOOL result;
     if (self.workingInProgress) {
@@ -436,9 +439,8 @@
             }
         }
     }
-    NSLog(@"contentSize height: %d", self.scrollViewHeight);
+    NSLog(@"contentSize height: %d", self.scrollViewHeight);  
 }
-
 -(NSInteger)getTheHighestColumnHeight
 {
     id y = self.columnVisible[0][@"bottom"][@"y"];
