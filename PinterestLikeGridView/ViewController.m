@@ -208,9 +208,9 @@
 }
 
 #pragma mark - plgvDelegate
--(PLGViewCell *)plgvView:(PLGView *)plgbView cellForRow:(NSInteger)row{
+-(PLGViewCell *)plgvView:(PLGView *)plgView cellForRow:(NSInteger)row{
     NSString *identifier = @"cell";
-    PLGViewCell *cell = [plgbView dequeueReusableCellWithIdentifier:identifier];
+    PLGViewCell *cell = [plgView dequeueReusableCellWithIdentifier:identifier];
     if(cell == nil){
         NSLog(@"new cell in row :%d", row);
         cell = [[PLGViewCell alloc] initWithReuseIdentifier:identifier];
@@ -225,12 +225,12 @@
         [cell setBackgroundColor:[UIColor whiteColor]];
         [cell addSubview:imageView];
     }
-    imageView.frame = CGRectMake(0, 0, [plgbView.data[row][@"w"] floatValue], [plgbView.data[row][@"h"] floatValue]);
-    imageView.image = [UIImage imageNamed:plgbView.data[row][@"img"]];
+    imageView.frame = CGRectMake(0, 0, [plgView.data[row][@"w"] floatValue], [plgView.data[row][@"h"] floatValue]);
+    imageView.image = [UIImage imageNamed:plgView.data[row][@"img"]];
     return cell;
 }
--(CGFloat)plgvView:(PLGView *)plgbView heightForCell:(NSInteger)row{
-    CGFloat h = [plgbView.data[row][@"h"] floatValue];
+-(CGFloat)plgvView:(PLGView *)plgView heightForCell:(NSInteger)row{
+    CGFloat h = [plgView.data[row][@"h"] floatValue];
     return h;
 }
 
