@@ -128,6 +128,7 @@
 //scrollView正在滚动的过程中调用的方法
 -(void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
+    NSLog(@"===============scrollView didScroll!");
     self.currentOffsetY = scrollView.contentOffset.y;
     //滚动的过程中实时监控滚动速度
     CGPoint currentOffset = self.contentOffset;
@@ -368,6 +369,7 @@
 
 -(NSInteger)getIndexInData:(NSInteger)column originY:(float)y direction:(NSString *)direction
 {
+    
     __block NSInteger indexInData = -1;
 //    NSLog(@"%d", self.countOfMatrix);
     [self.matrix[column] enumerateObjectsUsingBlock:^(NSDictionary *d , NSUInteger i, BOOL *stop) {
@@ -500,12 +502,13 @@
 }
 
 -(void)reload{
-    self.contentSize = CGSizeMake(self.frameWidth, self.frameHeight + 1);
     for(UIView *view in self.subviews){
         [view removeFromSuperview];
     }
-//    NSLog(@"reload =====%f", self.contentOffset.y );
     [self initProperties];
+    self.contentSize = CGSizeMake(self.frameWidth, self.frameHeight + 1);
+//    NSLog(@"reload =====%f", self.contentOffset.y );
+    
     [self initContent];
     
 }
