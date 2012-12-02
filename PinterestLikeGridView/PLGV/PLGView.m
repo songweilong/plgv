@@ -71,8 +71,8 @@
         
         //初始化matrix
         self.matrix[i] = [@[] mutableCopy];
-        //初始化Cells池
-        [self addCellInToCellsPoll];
+//        //初始化Cells池
+//        [self addCellInToCellsPoll];
     }
 }
 
@@ -106,16 +106,16 @@
 }
 
 //在内存中创建一个cell并且增加到cells池中
--(void)addCellInToCellsPoll
-{
-    PLGViewCell *cell = [[PLGViewCell alloc] init];
-    cell.backgroundColor = [UIColor clearColor];
-//    UIImageView *imageView = [[UIImageView alloc] init];
-//    [imageView setTag:10];
-//    [cell setBackgroundColor:[UIColor whiteColor]];
-//    [cell addSubview:imageView];
-    [self.cellsPool addObject:cell];
-}
+//-(void)addCellInToCellsPoll
+//{
+//    PLGViewCell *cell = [[PLGViewCell alloc] init];
+//    cell.backgroundColor = [UIColor clearColor];
+////    UIImageView *imageView = [[UIImageView alloc] init];
+////    [imageView setTag:10];
+////    [cell setBackgroundColor:[UIColor whiteColor]];
+////    [cell addSubview:imageView];
+//    [self.cellsPool addObject:cell];
+//}
 
 //scrollView正在滚动的过程中调用的方法
 -(void)scrollViewDidScroll:(UIScrollView *)scrollView
@@ -295,13 +295,6 @@
         self.countOfMatrix++;
     }
     
-    //更新瀑布流的总高度
-    NSInteger scrollViewHeight = [self getTheHighestColumnHeight];
-    if (scrollViewHeight > self.scrollViewHeight) {
-        self.scrollViewHeight = scrollViewHeight;
-        self.contentSize = CGSizeMake(self.frameWidth, self.scrollViewHeight);
-    }
-    
     //获取cell在瀑布流矩阵数组中的index值
     NSInteger indexInMatrix = [self getIndexInMatrix:column originY:origin.y];
     
@@ -343,6 +336,14 @@
         self.columnVisible[column][@"top"][@"indexInMatrix"] = @(indexInMatrix - 1);
     }
     [self.cellsPool removeObject:cell];
+    
+    //更新瀑布流的总高度
+    NSInteger scrollViewHeight = [self getTheHighestColumnHeight];
+    if (scrollViewHeight > self.scrollViewHeight) {
+        self.scrollViewHeight = scrollViewHeight;
+        self.contentSize = CGSizeMake(self.frameWidth, self.scrollViewHeight);
+    }
+    
     self.workingInProgress = NO;
 //    NSLog(@"++++++++++++++++++++++++++++++++>");
 //    NSLog(@"[%@, %@, %@]", self.columnVisible[0][@"top"][@"y"], self.columnVisible[1][@"top"][@"y"], self.columnVisible[2][@"top"][@"y"]);
@@ -429,11 +430,14 @@
     if ([@"up" isEqualToString:direction]) {
         NSInteger bottomLowestHeight = [self getTheLowestHeightForAddingCell];
         while (bottomLowestHeight <= self.currentOffsetY + self.frameHeight) {
+            NSLog(@"%d--%d", bottomLowestHeight, self.currentOffsetY + self.frameHeight);
+
             NSLog(@"^^");
             result = [self renderCell:direction];
             if (!result) {
                 break;
             }
+            bottomLowestHeight = [self getTheLowestHeightForAddingCell];
         }
     }
     
@@ -445,6 +449,7 @@
             if (!result) {
                 break;
             }
+            topHighestHeight = [self getTheHighestHeightForAddingCell];
         }
     }
     NSLog(@"contentSize height: %d", self.scrollViewHeight);  
@@ -482,7 +487,9 @@
     return [y intValue];
 }
 
+-(void)reload{
 
+}
 
 -(NSMutableSet *)getPoolSet:(NSString *)identifier{
     NSMutableSet *set = self.cellsPools[identifier];

@@ -57,6 +57,7 @@
 
 -(PLGViewCell *)dequeueReusableCellWithIdentifier:(NSString *)identifier;   //获取一个可用cell,没有时创建新的
 -(void)redrawVisibleScrollView;   //重画当前可见区域，在添加新数据后，执行
+-(void)reload; //
 @end
 
 
