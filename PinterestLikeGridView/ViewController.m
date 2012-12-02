@@ -23,6 +23,10 @@
                                              columnSpace:10
                                                     data:nil];
     _plgvView.plgvDelegate = self;
+    UIView *topView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 1024, 100)];
+    topView.backgroundColor = [UIColor redColor];
+    [_plgvView addSubview:topView];
+    _plgvView.topPadding = 110;
     [self.view addSubview:_plgvView];
     NSLog(@"w%f, h%f", self.view.frame.size.width, self.view.frame.size.height);
     UIButton *buttonAdd = [UIButton buttonWithType:UIButtonTypeContactAdd];

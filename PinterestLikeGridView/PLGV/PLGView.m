@@ -42,6 +42,7 @@
         self.isScrollingSlow     = YES;
         self.workingInProgress   = NO;
         self.lastScrollDirection = @"up";
+        self.topPadding          = TOP_PADDING;
         
         [self initProperties];
         self.contentSize = CGSizeMake(self.frameWidth, self.scrollViewHeight);
@@ -71,14 +72,17 @@
     self.scrollViewHeight = self.frameHeight + 1;
     [self initColumnVisible];
 }
-
+- (void)setTopPadding:(CGFloat)topPadding{
+    _topPadding = topPadding;
+    [self initColumnVisible];
+}
 -(void) initColumnVisible{
     for (NSInteger i = 0; i < self.columns; i++) {
 
         //初始化columnVisible
         self.columnVisible[i] = [@{
-            @"top"    : [@{@"y" : @(TOP_PADDING), @"indexInMatrix" : @0} mutableCopy],
-            @"bottom" : [@{@"y" : @(TOP_PADDING), @"indexInMatrix" : @0} mutableCopy]
+            @"top"    : [@{@"y" : @(self.topPadding ), @"indexInMatrix" : @0} mutableCopy],
+            @"bottom" : [@{@"y" : @(self.topPadding ), @"indexInMatrix" : @0} mutableCopy]
         } mutableCopy];
         
     }
@@ -282,7 +286,7 @@
     CGPoint origin = [self getOrigin:direction];
     NSLog(@"--->%f", origin.y);
     NSLog(@"%@", direction);
-    if ([@"down" isEqualToString:direction] && origin.y <= TOP_PADDING) {
+    if ([@"down" isEqualToString:direction] && origin.y <= self.topPadding ) {
         self.workingInProgress = NO;
         return NO; //处在最顶端并向下拖动的就不用再向上画内容了
     }
@@ -503,7 +507,9 @@
 
 -(void)reload{
     for(UIView *view in self.subviews){
-        [view removeFromSuperview];
+        if([view isKindOfClass:[PLGViewCell class]]){
+            [view removeFromSuperview];
+        }
     }
     [self initProperties];
     self.contentSize = CGSizeMake(self.frameWidth, self.frameHeight + 1);

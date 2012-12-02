@@ -49,6 +49,7 @@
 @property (nonatomic) NSString             *lastScrollDirection;     //上一次滚动的方向
 
 
+@property (nonatomic) CGFloat topPadding;   //顶部预留，可以放一些自定义内容
 
 - (id)initWithConfig:(CGRect)frame                              //自定义的init方法, 可配置瀑布流参数
              columns:(NSInteger)columns
