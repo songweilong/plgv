@@ -12,6 +12,7 @@
                                   //则认为是慢速滚动, 人眼可以识别滚动的内容,我们就要向瀑布流中画入cells
                                   //这个值没有特定参考, 是实测出的一个较为合理的数据, 可以自行测试修改
 #define PRELOAD_HEIGHT     (self.frame.size.height/2)  //瀑布流高度的三分之一作为预读数据的高度
+#define TOP_PADDING        10.0f
 
 @implementation PLGView
 
@@ -36,14 +37,10 @@
         self.matrix              = [NSMutableArray arrayWithCapacity:self.columns];
         self.cellsPool           = [NSMutableSet set];
         self.cellsPools          = [NSMutableDictionary dictionary];
-        self.visibleCellsPool    = [NSMutableSet set];
         self.frameWidth          = frame.size.width;
         self.frameHeight         = frame.size.height;
-        self.scrollViewHeight    = self.frameHeight + 1;
-        self.currentOffsetY      = 0;
         self.isScrollingSlow     = YES;
         self.workingInProgress   = NO;
-        self.countOfMatrix       = 0;
         self.lastScrollDirection = @"up";
         
         [self initProperties];
@@ -63,16 +60,27 @@
         self.columnX[i] = [NSNumber numberWithInt:theFirstLeftSapce + (self.columnWidth + self.columnSpace) * i];
         NSLog(@"第%d列的X坐标为%d", (i+1), [self.columnX[i] intValue]);
         
-        //初始化columnVisible
-        self.columnVisible[i] = [@{
-            @"top"    : [@{@"y" : @10, @"indexInMatrix" : @0} mutableCopy],
-            @"bottom" : [@{@"y" : @10, @"indexInMatrix" : @0} mutableCopy]
-        } mutableCopy];
-        
         //初始化matrix
         self.matrix[i] = [@[] mutableCopy];
 //        //初始化Cells池
 //        [self addCellInToCellsPoll];
+    }
+    self.countOfMatrix = 0;
+    self.currentOffsetY = 0;
+    self.visibleCellsPool = [NSMutableSet set];
+    self.scrollViewHeight = self.frameHeight + 1;
+    [self initColumnVisible];
+}
+
+-(void) initColumnVisible{
+    for (NSInteger i = 0; i < self.columns; i++) {
+
+        //初始化columnVisible
+        self.columnVisible[i] = [@{
+            @"top"    : [@{@"y" : @(TOP_PADDING), @"indexInMatrix" : @0} mutableCopy],
+            @"bottom" : [@{@"y" : @(TOP_PADDING), @"indexInMatrix" : @0} mutableCopy]
+        } mutableCopy];
+        
     }
 }
 
@@ -102,7 +110,7 @@
         i++;
     }
     NSLog(@"初始化完毕: columnVisible:%@", self.columnVisible);
-    NSLog(@"初始化完毕: matrix:%@", self.matrix);
+//    NSLog(@"初始化完毕: matrix:%@", self.matrix);
 }
 
 //在内存中创建一个cell并且增加到cells池中
@@ -271,10 +279,14 @@
     self.workingInProgress = YES;
     //计算下一个cell的origin
     CGPoint origin = [self getOrigin:direction];
-    if ([@"down" isEqualToString:direction] && origin.y <= 0) {
+    NSLog(@"--->%f", origin.y);
+    NSLog(@"%@", direction);
+    if ([@"down" isEqualToString:direction] && origin.y <= TOP_PADDING) {
         self.workingInProgress = NO;
         return NO; //处在最顶端并向下拖动的就不用再向上画内容了
     }
+    NSLog(@"--------------->%f", origin.y);
+    NSLog(@"%@", direction);
     //计算要加入哪个column
     NSInteger column = [self getColumnNumberByX:origin.x];
     //计算用哪个data来做cell的内容
@@ -283,7 +295,7 @@
         self.workingInProgress = NO;
         return NO; //i<0说明没有得到数据的index, 说明已经到了数据末端
     }
-    NSDictionary *o = self.data[i];
+//    NSDictionary *o = self.data[i];
     CGFloat h = [self.plgvDelegate plgvView:self heightForCell:i];
     if (i >= self.countOfMatrix) {
         //新增的数据增加到matrix中
@@ -488,7 +500,14 @@
 }
 
 -(void)reload{
-
+    self.contentSize = CGSizeMake(self.frameWidth, self.frameHeight + 1);
+    for(UIView *view in self.subviews){
+        [view removeFromSuperview];
+    }
+//    NSLog(@"reload =====%f", self.contentOffset.y );
+    [self initProperties];
+    [self initContent];
+    
 }
 
 -(NSMutableSet *)getPoolSet:(NSString *)identifier{

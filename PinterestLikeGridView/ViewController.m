@@ -28,6 +28,11 @@
     UIButton *buttonAdd = [UIButton buttonWithType:UIButtonTypeContactAdd];
     [buttonAdd addTarget:self action:@selector(addMoreData) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:buttonAdd];
+    
+    UIButton *buttonReload = [UIButton buttonWithType:UIButtonTypeContactAdd];
+    buttonReload.frame = CGRectMake(0, 30, buttonReload.frame.size.width,buttonReload.frame.size.height);
+    [buttonReload addTarget:self action:@selector(reload) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:buttonReload];
 }
 
 - (void)didReceiveMemoryWarning
@@ -48,6 +53,10 @@
     NSArray *data = [self getTestData];
     [_plgvView.data addObjectsFromArray:data];
     [_plgvView redrawVisibleScrollView];    
+}
+-(void)reload{
+    _plgvView.data = [NSMutableArray arrayWithArray:[self getTestData]];
+    [_plgvView reload];
 }
 -(NSArray *)getTestData
 {
