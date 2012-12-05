@@ -359,7 +359,7 @@
     if (scrollViewHeight > self.scrollViewHeight) {
         self.scrollViewHeight = scrollViewHeight;
         self.contentSize = CGSizeMake(self.frameWidth, self.scrollViewHeight);
-        if([self.plgvDelegate performSelector:@selector(plgvView:heightChanged:)]){
+        if([self.plgvDelegate respondsToSelector:@selector(plgvView:heightChanged:)]){
             [self.plgvDelegate plgvView:self heightChanged:self.scrollViewHeight];
         }
     }
