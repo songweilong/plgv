@@ -233,5 +233,7 @@
     CGFloat h = [plgView.data[row][@"h"] floatValue];
     return h;
 }
-
+-(void)plgvView:(PLGView *)plgView heightChanged:(CGFloat)height{
+    NSLog(@"height Changee:%f", height);
+}
 @end

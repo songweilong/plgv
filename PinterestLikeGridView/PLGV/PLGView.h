@@ -65,8 +65,11 @@
 
 @protocol PLGViewDelegate <NSObject>
 
+@required
 -(PLGViewCell *)plgvView:(PLGView *)plgView cellForRow:(NSInteger )row;
 -(CGFloat)plgvView:(PLGView *)plgView heightForCell:(NSInteger )row;
-//-(CGFloat)plgvView:(PLGView *)plgView widthForCell:(NSInteger )row;
+@optional
+-(void)plgvView:(PLGView *)plgView heightChanged:(CGFloat)height;
+
 @end
 
