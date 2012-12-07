@@ -130,10 +130,10 @@
 //}
 
 //scrollView正在滚动的过程中调用的方法
--(void)scrollViewDidScroll:(UIScrollView *)scrollView
+-(void)plgViewDidScroll
 {
     NSLog(@"===============scrollView didScroll!");
-    self.currentOffsetY = scrollView.contentOffset.y;
+    self.currentOffsetY = self.contentOffset.y;
     //滚动的过程中实时监控滚动速度
     CGPoint currentOffset = self.contentOffset;
     NSTimeInterval currentTime = [NSDate timeIntervalSinceReferenceDate];
@@ -170,8 +170,8 @@
 }
 
 //计算目前是向上滚动还是向下滚动用的
--(void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
-    self.offsetWillBeginDragging = scrollView.contentOffset;
+-(void)plgViewWillBeginDragging{
+    self.offsetWillBeginDragging = self.contentOffset;
 }
 
 //处理将要增加和删除的cells

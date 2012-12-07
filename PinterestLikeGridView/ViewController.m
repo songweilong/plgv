@@ -23,6 +23,7 @@
                                              columnSpace:10
                                                     data:nil];
     _plgvView.plgvDelegate = self;
+    _plgvView.delegate = self;
     UIView *topView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 1024, 100)];
     topView.backgroundColor = [UIColor redColor];
     [_plgvView addSubview:topView];
@@ -235,5 +236,13 @@
 }
 -(void)plgvView:(PLGView *)plgView heightChanged:(CGFloat)height{
     NSLog(@"height Changee:%f", height);
+}
+
+#pragma mark - delegate
+-(void)scrollViewDidScroll:(UIScrollView *)scrollView{
+    [_plgvView plgViewDidScroll];
+}
+-(void)scrollViewWillBeginDragging:(UIScrollView *)scrollView{
+    [_plgvView plgViewWillBeginDragging];
 }
 @end

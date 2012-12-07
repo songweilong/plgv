@@ -18,9 +18,10 @@
 
 
 
-@interface PLGView : UIScrollView <UIScrollViewDelegate>
+@interface PLGView : UIScrollView
 
 @property (nonatomic, weak) id <PLGViewDelegate> plgvDelegate;   //回调
+
 
 @property (nonatomic) NSInteger            columns;                  //瀑布流的列数
 @property (nonatomic) NSInteger            columnSpace;              //Cell之间的间距
@@ -59,6 +60,17 @@
 -(PLGViewCell *)dequeueReusableCellWithIdentifier:(NSString *)identifier;   //获取一个可用cell,没有时创建新的
 -(void)redrawVisibleScrollView;   //重画当前可见区域，在添加新数据后，执行
 -(void)reload; //
+
+
+//-(void)scrollViewDidScroll:(UIScrollView *)scrollView;
+//捕捉该delegate
+-(void)plgViewDidScroll;
+//-(void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
+//捕捉该delegate
+-(void)plgViewWillBeginDragging;
+
+
+
 @end
 
 
@@ -70,6 +82,8 @@
 -(CGFloat)plgvView:(PLGView *)plgView heightForCell:(NSInteger )row;
 @optional
 -(void)plgvView:(PLGView *)plgView heightChanged:(CGFloat)height;
-
+//因为这和scrollview 设置delegate为自己，所以如果在使用地方想在捕捉这个delegate时，不能再次使用delegate,需要重新指定scrollDelegate;
+-(void)scrollViewDidScroll:(UIScrollView *)scrollView;
+-(void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate;
 @end
 
