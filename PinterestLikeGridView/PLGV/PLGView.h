@@ -65,10 +65,9 @@
 //-(void)scrollViewDidScroll:(UIScrollView *)scrollView;
 //捕捉该delegate
 -(void)plgViewDidScroll;
-//-(void)scrollViewDidEndDragging:(UIScrollView *)scrollView willDecelerate:(BOOL)decelerate;
 //捕捉该delegate
--(void)plgViewDidEndDragging;
-
+//-(void)scrollViewWillBeginDragging:(UIScrollView *)scrollView
+-(void)plgViewWillBeginDragging;
 
 
 @end
