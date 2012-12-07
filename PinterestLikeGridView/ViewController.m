@@ -243,6 +243,6 @@
     [_plgvView plgViewDidScroll];
 }
 -(void)scrollViewWillBeginDragging:(UIScrollView *)scrollView{
-    [_plgvView plgViewDidEndDragging];
+    [_plgvView plgViewWillBeginDragging];
 }
 @end
