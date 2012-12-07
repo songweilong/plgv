@@ -29,7 +29,7 @@
     [_plgvView addSubview:topView];
     _plgvView.topPadding = 110;
     [self.view addSubview:_plgvView];
-    NSLog(@"w%f, h%f", self.view.frame.size.width, self.view.frame.size.height);
+//    NSLog(@"w%f, h%f", self.view.frame.size.width, self.view.frame.size.height);
     UIButton *buttonAdd = [UIButton buttonWithType:UIButtonTypeContactAdd];
     [buttonAdd addTarget:self action:@selector(addMoreData) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:buttonAdd];
@@ -213,10 +213,10 @@
     NSString *identifier = @"cell";
     PLGViewCell *cell = [plgView dequeueReusableCellWithIdentifier:identifier];
     if(cell == nil){
-        NSLog(@"new cell in row :%d", row);
+//        NSLog(@"new cell in row :%d", row);
         cell = [[PLGViewCell alloc] initWithReuseIdentifier:identifier];
     }else{
-        NSLog(@"reuse in row:%d",row);
+//        NSLog(@"reuse in row:%d",row);
     }
     UIImageView *imageView = (UIImageView *)[cell viewWithTag:10];
     if(!imageView){
@@ -235,7 +235,7 @@
     return h;
 }
 -(void)plgvView:(PLGView *)plgView heightChanged:(CGFloat)height{
-    NSLog(@"height Changee:%f", height);
+//    NSLog(@"height Changee:%f", height);
 }
 
 #pragma mark - delegate

@@ -59,7 +59,7 @@
     for (NSInteger i = 0; i < self.columns; i++) {
         //初始化columnX
         self.columnX[i] = [NSNumber numberWithInt:theFirstLeftSapce + (self.columnWidth + self.columnSpace) * i];
-        NSLog(@"第%d列的X坐标为%d", (i+1), [self.columnX[i] intValue]);
+//        NSLog(@"第%d列的X坐标为%d", (i+1), [self.columnX[i] intValue]);
         
         //初始化matrix
         self.matrix[i] = [@[] mutableCopy];
@@ -95,7 +95,7 @@
     // Drawing code
     // 读取data中的数据并加到scrollview中去
     [self initContent];
-    NSLog(@"初始化后总共添加了%d个Cells", [self.subviews count]);
+//    NSLog(@"初始化后总共添加了%d个Cells", [self.subviews count]);
     
 }
 
@@ -113,7 +113,7 @@
         lowestColumnHeight = [self getTheLowestHeightForAddingCell];
         i++;
     }
-    NSLog(@"初始化完毕: columnVisible:%@", self.columnVisible);
+//    NSLog(@"初始化完毕: columnVisible:%@", self.columnVisible);
 //    NSLog(@"初始化完毕: matrix:%@", self.matrix);
 }
 
@@ -132,7 +132,7 @@
 //scrollView正在滚动的过程中调用的方法
 -(void)plgViewDidScroll
 {
-    NSLog(@"===============scrollView didScroll!");
+//    NSLog(@"===============scrollView didScroll!");
     self.currentOffsetY = self.contentOffset.y;
     //滚动的过程中实时监控滚动速度
     CGPoint currentOffset = self.contentOffset;
@@ -284,14 +284,14 @@
     self.workingInProgress = YES;
     //计算下一个cell的origin
     CGPoint origin = [self getOrigin:direction];
-    NSLog(@"--->%f", origin.y);
-    NSLog(@"%@", direction);
+//    NSLog(@"--->%f", origin.y);
+//    NSLog(@"%@", direction);
     if ([@"down" isEqualToString:direction] && origin.y <= self.topPadding ) {
         self.workingInProgress = NO;
         return NO; //处在最顶端并向下拖动的就不用再向上画内容了
     }
-    NSLog(@"--------------->%f", origin.y);
-    NSLog(@"%@", direction);
+//    NSLog(@"--------------->%f", origin.y);
+//    NSLog(@"%@", direction);
     //计算要加入哪个column
     NSInteger column = [self getColumnNumberByX:origin.x];
     //计算用哪个data来做cell的内容
@@ -451,9 +451,9 @@
     if ([@"up" isEqualToString:direction]) {
         NSInteger bottomLowestHeight = [self getTheLowestHeightForAddingCell];
         while (bottomLowestHeight <= self.currentOffsetY + self.frameHeight) {
-            NSLog(@"%d--%d", bottomLowestHeight, self.currentOffsetY + self.frameHeight);
+//            NSLog(@"%d--%d", bottomLowestHeight, self.currentOffsetY + self.frameHeight);
 
-            NSLog(@"^^");
+//            NSLog(@"^^");
             result = [self renderCell:direction];
             if (!result) {
                 break;
@@ -465,7 +465,7 @@
     if([@"down" isEqualToString:direction]) {
         NSInteger topHighestHeight = [self getTheHighestHeightForAddingCell];
         while (topHighestHeight >= self.currentOffsetY) {
-            NSLog(@"^^");
+//            NSLog(@"^^");
             result = [self renderCell:direction];
             if (!result) {
                 break;
@@ -473,7 +473,7 @@
             topHighestHeight = [self getTheHighestHeightForAddingCell];
         }
     }
-    NSLog(@"contentSize height: %d", self.scrollViewHeight);  
+//    NSLog(@"contentSize height: %d", self.scrollViewHeight);  
 }
 -(NSInteger)getTheHighestColumnHeight
 {
