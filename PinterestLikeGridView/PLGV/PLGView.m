@@ -24,7 +24,6 @@
     self = [super initWithFrame:frame];
     if (self) {
         //初始化参数
-        self.delegate            = self;
         self.backgroundColor     = [UIColor greenColor];
         self.columns             = columns;
         self.columnSpace         = columnSpace;
