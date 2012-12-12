@@ -18,10 +18,11 @@
 {
     [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
-    _plgvView = [[PLGView alloc] initWithConfig:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height)
-                                                 columns:5
-                                             columnSpace:10
-                                                    data:nil];
+//    _plgvView = [[PLGView alloc] initWithConfig:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height)
+//                                                 columns:5
+//                                             columnSpace:10
+//                                                    data:nil];
+    _plgvView = [[PLGView alloc] initWithConfig:CGRectMake(0, 0, self.view.frame.size.width, self.view.frame.size.height) columns:5 columnPortraitSpace:30 columnSpace:5 data:nil];
     _plgvView.plgvDelegate = self;
     _plgvView.delegate = self;
     UIView *topView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, 1024, 100)];

@@ -24,32 +24,53 @@
     self = [super initWithFrame:frame];
     if (self) {
         //初始化参数
-        self.backgroundColor     = [UIColor greenColor];
         self.columns             = columns;
         self.columnSpace         = columnSpace;
-        self.columnWidthF        = (frame.size.width - (self.columns + 1) * self.columnSpace) / self.columns;
-        self.columnWidth         = self.columnWidthF;
-        self.cellWidth           = self.columnWidth;
+        self.columnPortraitSpace = columnSpace;
         self.data                = [NSMutableArray arrayWithArray:data];
-        self.columnX             = [NSMutableArray arrayWithCapacity:self.columns];
-        self.columnVisible       = [NSMutableArray arrayWithCapacity:self.columns];
-        self.matrix              = [NSMutableArray arrayWithCapacity:self.columns];
-        self.cellsPool           = [NSMutableSet set];
-        self.cellsPools          = [NSMutableDictionary dictionary];
         self.frameWidth          = frame.size.width;
         self.frameHeight         = frame.size.height;
-        self.isScrollingSlow     = YES;
-        self.workingInProgress   = NO;
-        self.lastScrollDirection = @"up";
-        self.topPadding          = TOP_PADDING;
-        
-        [self initProperties];
-        self.contentSize = CGSizeMake(self.frameWidth, self.scrollViewHeight);
+        self.backgroundColor     = [UIColor greenColor];
+        [self initConfig];
         //测试数据 TODO: to be deleted
+        [self initProperties];
     }
     return self;
 }
 
+-(id)initWithConfig:(CGRect)frame columns:(NSInteger)columns columnPortraitSpace:(NSInteger)columnPortraitSpace columnSpace:(NSInteger)columnSpace data:(NSArray *)data{
+    self = [super initWithFrame:frame];
+    if (self) {
+        //初始化参数
+        self.columns             = columns;
+        self.columnSpace         = columnSpace;
+        self.columnPortraitSpace = columnPortraitSpace;
+        self.data                = [NSMutableArray arrayWithArray:data];
+        self.frameWidth          = frame.size.width;
+        self.frameHeight         = frame.size.height;
+        self.backgroundColor     = [UIColor greenColor];
+        [self initConfig];
+        //测试数据 TODO: to be deleted
+        [self initProperties];  
+    }
+    return self;
+}
+-(void)initConfig{
+    self.columnWidthF        = (self.frameWidth - (self.columns + 1) * self.columnSpace) / self.columns;
+    self.columnWidth         = self.columnWidthF;
+    self.cellWidth           = self.columnWidth;
+    self.columnX             = [NSMutableArray arrayWithCapacity:self.columns];
+    self.columnVisible       = [NSMutableArray arrayWithCapacity:self.columns];
+    self.matrix              = [NSMutableArray arrayWithCapacity:self.columns];
+    self.cellsPool           = [NSMutableSet set];
+    self.cellsPools          = [NSMutableDictionary dictionary];
+
+    self.isScrollingSlow     = YES;
+    self.workingInProgress   = NO;
+    self.lastScrollDirection = @"up";
+    self.topPadding          = TOP_PADDING;
+    self.contentSize = CGSizeMake(self.frameWidth, self.scrollViewHeight);
+}
 //初始化一些数组和字典
 -(void)initProperties
 {
@@ -256,7 +277,7 @@
 //    NSLog(@"recycleCells poolcount :%d", set.count);
     if([@"up" isEqualToString:direction]) {
         if (cell.frame.origin.y >= [cv[@"top"][@"y"] floatValue]) {
-            cv[@"top"][@"y"] = @(cell.frame.origin.y + cell.frame.size.height + self.columnSpace);
+            cv[@"top"][@"y"] = @(cell.frame.origin.y + cell.frame.size.height + self.columnPortraitSpace);
             cv[@"top"][@"indexInMatrix"] = @(indexInMatrix + 1);
         }
     }
@@ -334,11 +355,11 @@
         [self addSubview:cell];
         [self.visibleCellsPool addObject:cell];
         //更新当前可见区域的数组
-        self.columnVisible[column][@"bottom"][@"y"] = @(origin.y + h + self.columnSpace);
+        self.columnVisible[column][@"bottom"][@"y"] = @(origin.y + h + self.columnPortraitSpace);
         self.columnVisible[column][@"bottom"][@"indexInMatrix"] = @(indexInMatrix);
     }
     if ([@"down" isEqualToString:direction]) {
-        [cell setFrame:CGRectMake(origin.x, (origin.y - self.columnSpace - h), self.columnWidth, h)];
+        [cell setFrame:CGRectMake(origin.x, (origin.y - self.columnPortraitSpace - h), self.columnWidth, h)];
 //        imageView = (UIImageView *)[cell viewWithTag:10];
 ////        if (self.isScrollingSlow) {
 //            imageView.frame = CGRectMake(0, 0, self.columnWidth, [o[@"h"] floatValue]);
@@ -348,7 +369,7 @@
         [self addSubview:cell];
         [self.visibleCellsPool addObject:cell];
         //更新当前可见区域的数组
-        self.columnVisible[column][@"top"][@"y"] = @(origin.y - h - self.columnSpace);
+        self.columnVisible[column][@"top"][@"y"] = @(origin.y - h - self.columnPortraitSpace);
         self.columnVisible[column][@"top"][@"indexInMatrix"] = @(indexInMatrix - 1);
     }
     [self.cellsPool removeObject:cell];
@@ -379,7 +400,7 @@
     __block NSInteger indexInData = -1;
 //    NSLog(@"%d", self.countOfMatrix);
     [self.matrix[column] enumerateObjectsUsingBlock:^(NSDictionary *d , NSUInteger i, BOOL *stop) {
-        float prevY = [@"down" isEqualToString:direction] ? [d[@"y"] floatValue] + [d[@"h"] floatValue] + self.columnSpace : [d[@"y"] floatValue];
+        float prevY = [@"down" isEqualToString:direction] ? [d[@"y"] floatValue] + [d[@"h"] floatValue] + self.columnPortraitSpace : [d[@"y"] floatValue];
         if (prevY == y) {
             indexInData = [d[@"indexInData"] intValue];
             *stop = YES;

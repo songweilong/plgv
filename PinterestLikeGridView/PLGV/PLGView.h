@@ -25,6 +25,7 @@
 
 @property (nonatomic) NSInteger            columns;                  //瀑布流的列数
 @property (nonatomic) NSInteger            columnSpace;              //Cell之间的间距
+@property (nonatomic) NSInteger            columnPortraitSpace;      //cell数列的间距
 @property (nonatomic) NSInteger            columnWidth;              //Column的宽度, int型
 @property (nonatomic) float                columnWidthF;             //Column的宽度, float型
 @property (nonatomic) NSInteger            cellWidth;                //cell的宽度，供外部调用
@@ -54,6 +55,12 @@
 
 - (id)initWithConfig:(CGRect)frame                              //自定义的init方法, 可配置瀑布流参数
              columns:(NSInteger)columns
+         columnSpace:(NSInteger)columnSpace
+                data:(NSArray *)data;
+
+- (id)initWithConfig:(CGRect)frame                              //自定义的init方法, 可配置瀑布流参数
+             columns:(NSInteger)columns
+columnPortraitSpace :(NSInteger)columnPortraitSpace
          columnSpace:(NSInteger)columnSpace
                 data:(NSArray *)data;
 
